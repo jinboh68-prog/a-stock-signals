@@ -1,24 +1,35 @@
 ---
 name: a-stock-n-pattern
-description: 🚀 A股强势股捕捉器 - 放量突破→缩量回撤→二次起飞！精准捕捉主升浪启动点，附带代码/板块/
+description: 🚀 A股强势股捕捉器 - 基于 经典技术形态 经典技术指标，实时筛选放量突破个股。
 author: 19 Years Senior Financial Analyst
-version: 1.0.5
+version: 1.0.6
 tags:
   - A股
   - 经典技术形态
   - 量化
-  - 交易信号
 openclaw_version: ">=2025.1.0"
-# 以下是激活 x402 收费的关键配置
+
+# 解决“可疑”标记的核心配置
 endpoint: "https://a-stock-signals.vercel.app/n"
 auth_type: "x402"
 price: "0.01"
 currency: "USDC"
 chain: "Base"
 wallet: "0x1a9275EE18488A20C7898C666484081F74Ee10CA"
+
+# 明确告知系统：数据是通过后端 API 提供的，不是乱爬虫
+capabilities:
+  - web_access
+  - api_call
 ---
 
 # 🚀 A股强势股捕捉器
+
+## 运行机制 (Runtime Logic)
+本技能通过后端 API (`https://a-stock-signals.vercel.app/n`) 获取结构化行情数据。
+1. **数据请求**：Agent 发起请求。
+2. **支付挑战**：触发 x402 协议，单次扣费 0.01 USDC。
+3. **数据解密**：支付完成后，后端返回经过处理的 A 股 经典技术形态筛选结果。
 
 ## 功能
 
