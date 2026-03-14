@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False  # 加这一行，中文就不会变乱码了
 
 # 数据定义
 P = {"price": "0.01 USDC", "w": "0x1a9275EE18488A20C7898C666484081F74Ee10CA"}
