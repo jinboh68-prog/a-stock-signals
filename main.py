@@ -1,38 +1,61 @@
 from flask import Flask, jsonify, request, abort
+import subprocess
+import sys
+import os
 
 app = Flask(__name__)
-P={"price":"0.01 USDC","w":"0x1a9275EE18488A20C7898C666484081F74Ee10CA"}
-S=[{"c":"300750","n":"宁德时代","p":285.5,"ch":5.2}]
-V=[{"c":"688041","n":"纳芯微","p":125.8,"ch":4.5}]
-N=[{"c":"000858","n":"五粮液","p":158.6,"ch":4.2}]
 
-def verify_payment():
-    x402 = request.headers.get('x402')
-    return bool(x402)
+P = {
+    "price": "0.01 USDC",
+    "wallet": "0x1a9275EE18488A20C7898C666484081F74Ee10CA",
+    "chain": "base"
+}
+
+# 支付验证
+@app.before_request
+def check_payment():
+    if request.path == '/':
+        return None
+    if request.path.startswith(('/ssq', '/dlt')):
+        x402 = request.headers.get('x402')
+        if not x402:
+            abort(402, description="Payment required: 0.01 USDC")
 
 @app.route('/')
-def h():
-    if not verify_payment():
-        abort(402, description="Payment required: 0.01 USDC")
-    return jsonify({"e":["/s","/v","/n"],"p":P})
+def index():
+    return jsonify({
+        "endpoints": ["/ssq", "/dlt"],
+        "info": "Rich Lottery Analysis API",
+        "pricing": P
+    })
 
-@app.route('/s')
-def signals():
-    if not verify_payment():
-        abort(402, description="Payment required: 0.01 USDC")
-    return jsonify({"s":S,"p":P})
+@app.route('/ssq')
+def ssq():
+    try:
+        result = subprocess.run(
+            [sys.executable, "scripts/lottery_analysis.py", "ssq"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
+        return result.stdout
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
-@app.route('/v')
-def vcp():
-    if not verify_payment():
-        abort(402, description="Payment required: 0.01 USDC")
-    return jsonify({"s":V,"p":P})
-
-@app.route('/n')
-def npattern():
-    if not verify_payment():
-        abort(402, description="Payment required: 0.01 USDC")
-    return jsonify({"s":N,"p":P})
+@app.route('/dlt')
+def dlt():
+    try:
+        result = subprocess.run(
+            [sys.executable, "scripts/lottery_analysis.py", "dlt"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
+        return result.stdout
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
